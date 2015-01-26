@@ -1,0 +1,154 @@
+/*
+ * Copyright 2014 Tariq Bugrara
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+group = "io.progix.dropwizard"
+archivesBaseName = "dropwizard-jooq"
+version = "0.1.0"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'io.dropwizard:dropwizard-db:0.8.0-rc2'
+    compile 'io.dropwizard:dropwizard-hibernate:0.8.0-rc2'
+    compile 'org.jooq:jooq:3.5.1'
+
+    testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:2.15'
+    testCompile 'org.assertj:assertj-core:1.7.1';
+    testCompile 'org.mockito:mockito-core:1.10.17'
+}
+
+test {
+    filter {
+        includeTestsMatching "io.progix.dropwizard.jooq.test.*"
+    }
+}
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.jooq:jooq-codegen:3.5.1'
+        classpath 'postgresql:postgresql:9.1-901.jdbc4'
+    }
+}
+
+def writer = new StringWriter()
+def xml = new groovy.xml.MarkupBuilder(writer)
+        .configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.5.0.xsd') {
+    jdbc {
+        driver 'org.postgresql.Driver'
+        url 'jdbc:postgresql://localhost:5432/jooq'
+        user '_postgres'
+        schema 'public'
+    }
+    generator {
+        name 'org.jooq.util.DefaultGenerator'
+        strategy {
+            name 'org.jooq.util.DefaultGeneratorStrategy'
+        }
+        database {
+            name 'org.jooq.util.postgres.PostgresDatabase'
+            inputSchema 'public'
+            includes '.*'
+        }
+        generate {
+            relations true
+            deprecated false
+            records true
+            immutablePojos true
+            fluentSetters true
+            daos true
+        }
+        target {
+            packageName 'io.progix.dropwizard.jooq.schema'
+            directory 'src/test/java'
+        }
+    }
+}
+
+task genJooq {
+    org.jooq.util.GenerationTool.main(
+            javax.xml.bind.JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.util.jaxb.Configuration.class)
+    )
+}
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from Javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            pom.project {
+                name 'Dropwizard jOOQ'
+                description 'A Dropwizard bundle for jOOQ integration.'
+                url 'https://github.com/tbugrara/dropwizard-jooq'
+                scm {
+                    url 'scm:git:git@github.com:tbugrara/dropwizard-jooq.git'
+                    connection 'scm:git:git@github.com:tbugrara/dropwizard-jooq.git'
+                    developerConnection 'git@github.com:tbugrara/dropwizard-jooq.git'
+                }
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/license/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id 'tbugrara'
+                        name 'Tariq Bugrara'
+                        email 'tbugrara@gmail.com'
+                    }
+                }
+            }
+        }
+    }
+}
