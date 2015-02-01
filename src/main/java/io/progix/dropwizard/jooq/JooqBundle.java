@@ -13,10 +13,10 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
     private SQLDialect dialect;
     private Configuration configuration;
 
-    private final DWJooqConfigurationFactory configurationFactory;
+    private final JooqConfigurationFactory configurationFactory;
 
     public JooqBundle(SQLDialect dialect) {
-        this.configurationFactory = new DWJooqConfigurationFactory();
+        this.configurationFactory = new JooqConfigurationFactory();
         this.dialect = dialect;
     }
 

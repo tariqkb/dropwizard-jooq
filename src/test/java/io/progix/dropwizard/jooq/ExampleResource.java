@@ -11,6 +11,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -28,10 +29,14 @@ public class ExampleResource {
     @GET
     @Path("/injectConfig")
     @UnitOfJooq
-    public List<Author> get(Configuration config) {
+    public List<Author> get(@Context Configuration configuration) {
         DSLContext context = DSL.using(config);
 
         List<Author> authors = context.select().from(Tables.AUTHOR).fetchInto(Author.class);
+
+        AuthorDao dao = new AuthorDao(configuration);
+
+        List<Author> authors2 = dao.findAll();
 
         return authors;
     }
