@@ -36,11 +36,12 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
                 if (unitOfJooq != null) {
                     // get connection for this request
+                    ResourceConnectionContext.bind(dataSource.getConnection());
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-
+                //commit the connection and close it
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-
+                //rollback the connection
             }
         }
     }
