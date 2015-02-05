@@ -4,7 +4,7 @@
 package io.progix.dropwizard.jooq.schema;
 
 /**
- * Convenience access to all tables in public
+ * Convenience access to all tables in PUBLIC
  */
 @javax.annotation.Generated(
 	value = {
@@ -17,27 +17,7 @@ package io.progix.dropwizard.jooq.schema;
 public class Tables {
 
 	/**
-	 * The table public.author
+	 * The table PUBLIC.AUTHOR
 	 */
 	public static final io.progix.dropwizard.jooq.schema.tables.Author AUTHOR = io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR;
-
-	/**
-	 * The table public.book
-	 */
-	public static final io.progix.dropwizard.jooq.schema.tables.Book BOOK = io.progix.dropwizard.jooq.schema.tables.Book.BOOK;
-
-	/**
-	 * The table public.book_store
-	 */
-	public static final io.progix.dropwizard.jooq.schema.tables.BookStore BOOK_STORE = io.progix.dropwizard.jooq.schema.tables.BookStore.BOOK_STORE;
-
-	/**
-	 * The table public.book_to_book_store
-	 */
-	public static final io.progix.dropwizard.jooq.schema.tables.BookToBookStore BOOK_TO_BOOK_STORE = io.progix.dropwizard.jooq.schema.tables.BookToBookStore.BOOK_TO_BOOK_STORE;
-
-	/**
-	 * The table public.language
-	 */
-	public static final io.progix.dropwizard.jooq.schema.tables.Language LANGUAGE = io.progix.dropwizard.jooq.schema.tables.Language.LANGUAGE;
 }

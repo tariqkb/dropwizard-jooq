@@ -30,10 +30,13 @@ dependencies {
     compile 'io.dropwizard:dropwizard-db:0.8.0-rc2'
     compile 'io.dropwizard:dropwizard-hibernate:0.8.0-rc2'
     compile 'org.jooq:jooq:3.5.1'
+    compile 'org.jooq:jooq-codegen:3.5.1'
 
     testCompile 'org.glassfish.jersey.test-framework.providers:jersey-test-framework-provider-inmemory:2.15'
     testCompile 'org.assertj:assertj-core:1.7.1';
     testCompile 'org.mockito:mockito-core:1.10.17'
+
+    runtime 'org.hsqldb:hsqldb:2.3.2'
 }
 
 test {
@@ -50,7 +53,8 @@ buildscript {
 
     dependencies {
         classpath 'org.jooq:jooq-codegen:3.5.1'
-        classpath 'postgresql:postgresql:9.1-901.jdbc4'
+        classpath 'org.hsqldb:hsqldb:2.3.2'
+        classpath files("$buildDir/classes/test")
     }
 }
 
@@ -58,10 +62,9 @@ def writer = new StringWriter()
 def xml = new groovy.xml.MarkupBuilder(writer)
         .configuration('xmlns': 'http://www.jooq.org/xsd/jooq-codegen-3.5.0.xsd') {
     jdbc {
-        driver 'org.postgresql.Driver'
-        url 'jdbc:postgresql://localhost:5432/jooq'
-        user '_postgres'
-        schema 'public'
+        driver 'org.hsqldb.jdbc.JDBCDriver'
+        url 'jdbc:hsqldb:mem:dwtest'
+        user 'sa'
     }
     generator {
         name 'org.jooq.util.DefaultGenerator'
@@ -69,8 +72,8 @@ def xml = new groovy.xml.MarkupBuilder(writer)
             name 'org.jooq.util.DefaultGeneratorStrategy'
         }
         database {
-            name 'org.jooq.util.postgres.PostgresDatabase'
-            inputSchema 'public'
+            name 'org.jooq.util.hsqldb.HSQLDBDatabase'
+            inputSchema 'PUBLIC'
             includes '.*'
         }
         generate {
@@ -87,11 +90,14 @@ def xml = new groovy.xml.MarkupBuilder(writer)
         }
     }
 }
+task genJooq << {
+        io.progix.dropwizard.jooq.HSQLDBInit.init(
+            [url:'jdbc:hsqldb:mem:dwtest', username:'sa', password:'']
+        )
 
-task genJooq {
-    org.jooq.util.GenerationTool.main(
-            javax.xml.bind.JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.util.jaxb.Configuration.class)
-    )
+        org.jooq.util.GenerationTool.generate(
+                javax.xml.bind.JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.util.jaxb.Configuration.class)
+        )
 }
 
 task javadocJar(type: Jar) {

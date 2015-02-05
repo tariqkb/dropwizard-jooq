@@ -16,10 +16,10 @@ package io.progix.dropwizard.jooq.schema.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Author extends org.jooq.impl.TableImpl<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> {
 
-	private static final long serialVersionUID = 1433089297;
+	private static final long serialVersionUID = -375284768;
 
 	/**
-	 * The reference instance of <code>public.author</code>
+	 * The reference instance of <code>PUBLIC.AUTHOR</code>
 	 */
 	public static final io.progix.dropwizard.jooq.schema.tables.Author AUTHOR = new io.progix.dropwizard.jooq.schema.tables.Author();
 
@@ -32,44 +32,24 @@ public class Author extends org.jooq.impl.TableImpl<io.progix.dropwizard.jooq.sc
 	}
 
 	/**
-	 * The column <code>public.author.id</code>.
+	 * The column <code>PUBLIC.AUTHOR.ID</code>.
 	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.Integer> ID = createField("id", org.jooq.impl.SQLDataType.INTEGER.nullable(false).defaulted(true), this, "");
+	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.Integer> ID = createField("ID", org.jooq.impl.SQLDataType.INTEGER, this, "");
 
 	/**
-	 * The column <code>public.author.first_name</code>.
+	 * The column <code>PUBLIC.AUTHOR.NAME</code>.
 	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.String> FIRST_NAME = createField("first_name", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
+	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.String> NAME = createField("NAME", org.jooq.impl.SQLDataType.VARCHAR.length(32672), this, "");
 
 	/**
-	 * The column <code>public.author.last_name</code>.
-	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.String> LAST_NAME = createField("last_name", org.jooq.impl.SQLDataType.VARCHAR.length(50).nullable(false), this, "");
-
-	/**
-	 * The column <code>public.author.date_of_birth</code>.
-	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.sql.Date> DATE_OF_BIRTH = createField("date_of_birth", org.jooq.impl.SQLDataType.DATE, this, "");
-
-	/**
-	 * The column <code>public.author.year_of_birth</code>.
-	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.Integer> YEAR_OF_BIRTH = createField("year_of_birth", org.jooq.impl.SQLDataType.INTEGER, this, "");
-
-	/**
-	 * The column <code>public.author.distinguished</code>.
-	 */
-	public final org.jooq.TableField<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.Integer> DISTINGUISHED = createField("distinguished", org.jooq.impl.SQLDataType.INTEGER, this, "");
-
-	/**
-	 * Create a <code>public.author</code> table reference
+	 * Create a <code>PUBLIC.AUTHOR</code> table reference
 	 */
 	public Author() {
-		this("author", null);
+		this("AUTHOR", null);
 	}
 
 	/**
-	 * Create an aliased <code>public.author</code> table reference
+	 * Create an aliased <code>PUBLIC.AUTHOR</code> table reference
 	 */
 	public Author(java.lang.String alias) {
 		this(alias, io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR);
@@ -81,30 +61,6 @@ public class Author extends org.jooq.impl.TableImpl<io.progix.dropwizard.jooq.sc
 
 	private Author(java.lang.String alias, org.jooq.Table<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> aliased, org.jooq.Field<?>[] parameters) {
 		super(alias, io.progix.dropwizard.jooq.schema.Public.PUBLIC, aliased, parameters, "");
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public org.jooq.Identity<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord, java.lang.Integer> getIdentity() {
-		return io.progix.dropwizard.jooq.schema.Keys.IDENTITY_AUTHOR;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> getPrimaryKey() {
-		return io.progix.dropwizard.jooq.schema.Keys.AUTHOR_PKEY;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public java.util.List<org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord>> getKeys() {
-		return java.util.Arrays.<org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord>>asList(io.progix.dropwizard.jooq.schema.Keys.AUTHOR_PKEY);
 	}
 
 	/**

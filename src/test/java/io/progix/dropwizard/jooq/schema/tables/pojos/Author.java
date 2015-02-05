@@ -16,52 +16,24 @@ package io.progix.dropwizard.jooq.schema.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Author implements java.io.Serializable {
 
-	private static final long serialVersionUID = 1372606284;
+	private static final long serialVersionUID = 1709205953;
 
 	private final java.lang.Integer id;
-	private final java.lang.String  firstName;
-	private final java.lang.String  lastName;
-	private final java.sql.Date     dateOfBirth;
-	private final java.lang.Integer yearOfBirth;
-	private final java.lang.Integer distinguished;
+	private final java.lang.String  name;
 
 	public Author(
 		java.lang.Integer id,
-		java.lang.String  firstName,
-		java.lang.String  lastName,
-		java.sql.Date     dateOfBirth,
-		java.lang.Integer yearOfBirth,
-		java.lang.Integer distinguished
+		java.lang.String  name
 	) {
 		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.dateOfBirth = dateOfBirth;
-		this.yearOfBirth = yearOfBirth;
-		this.distinguished = distinguished;
+		this.name = name;
 	}
 
 	public java.lang.Integer getId() {
 		return this.id;
 	}
 
-	public java.lang.String getFirstName() {
-		return this.firstName;
-	}
-
-	public java.lang.String getLastName() {
-		return this.lastName;
-	}
-
-	public java.sql.Date getDateOfBirth() {
-		return this.dateOfBirth;
-	}
-
-	public java.lang.Integer getYearOfBirth() {
-		return this.yearOfBirth;
-	}
-
-	public java.lang.Integer getDistinguished() {
-		return this.distinguished;
+	public java.lang.String getName() {
+		return this.name;
 	}
 }

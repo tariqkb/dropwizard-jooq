@@ -16,10 +16,10 @@ package io.progix.dropwizard.jooq.schema;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends org.jooq.impl.SchemaImpl {
 
-	private static final long serialVersionUID = -1620351691;
+	private static final long serialVersionUID = -235264252;
 
 	/**
-	 * The reference instance of <code>public</code>
+	 * The reference instance of <code>PUBLIC</code>
 	 */
 	public static final Public PUBLIC = new Public();
 
@@ -27,21 +27,7 @@ public class Public extends org.jooq.impl.SchemaImpl {
 	 * No further instances allowed
 	 */
 	private Public() {
-		super("public");
-	}
-
-	@Override
-	public final java.util.List<org.jooq.Sequence<?>> getSequences() {
-		java.util.List result = new java.util.ArrayList();
-		result.addAll(getSequences0());
-		return result;
-	}
-
-	private final java.util.List<org.jooq.Sequence<?>> getSequences0() {
-		return java.util.Arrays.<org.jooq.Sequence<?>>asList(
-			io.progix.dropwizard.jooq.schema.Sequences.AUTHOR_ID_SEQ,
-			io.progix.dropwizard.jooq.schema.Sequences.BOOK_ID_SEQ,
-			io.progix.dropwizard.jooq.schema.Sequences.LANGUAGE_ID_SEQ);
+		super("PUBLIC");
 	}
 
 	@Override
@@ -53,10 +39,6 @@ public class Public extends org.jooq.impl.SchemaImpl {
 
 	private final java.util.List<org.jooq.Table<?>> getTables0() {
 		return java.util.Arrays.<org.jooq.Table<?>>asList(
-			io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR,
-			io.progix.dropwizard.jooq.schema.tables.Book.BOOK,
-			io.progix.dropwizard.jooq.schema.tables.BookStore.BOOK_STORE,
-			io.progix.dropwizard.jooq.schema.tables.BookToBookStore.BOOK_TO_BOOK_STORE,
-			io.progix.dropwizard.jooq.schema.tables.Language.LANGUAGE);
+			io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR);
 	}
 }
