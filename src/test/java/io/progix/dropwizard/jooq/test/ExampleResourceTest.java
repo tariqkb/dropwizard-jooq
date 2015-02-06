@@ -11,6 +11,7 @@ import io.progix.dropwizard.jooq.ConfigurationProvider;
 import io.progix.dropwizard.jooq.HSQLDBInit;
 import io.progix.dropwizard.jooq.JooqBundle;
 import io.progix.dropwizard.jooq.UnitOfJooq;
+
 import static io.progix.dropwizard.jooq.schema.Tables.*;
 
 import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
@@ -21,6 +22,7 @@ import org.glassfish.jersey.test.JerseyTest;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.junit.Test;
 
@@ -62,14 +64,16 @@ public class ExampleResourceTest extends JerseyTest {
                 return author;
             }
 
-            throw new WebApplicationException(404);
+            throw new WebApplicationException(405);
         }
 
         @PUT
         @Path("/{index}")
         @UnitOfJooq
-        public void put(@PathParam("index") int index, @Context Configuration config) {
-            DSL.using(config).insertInto(AUTHOR).set(AUTHOR.ID, index).set(AUTHOR.NAME, "Alli").execute();
+        public Author put(@PathParam("index") int index, @Context Configuration config) {
+            Author a = DSL.using(config).insertInto(AUTHOR).set(AUTHOR.ID, index).set(AUTHOR.NAME, "Alli").returning().fetchOne().into(Author.class);
+
+            return a;
         }
     }
 
@@ -97,14 +101,9 @@ public class ExampleResourceTest extends JerseyTest {
     public void createsNewData() throws Exception {
         final Author author = new Author(null, "Alli");
 
-        target("/author/1").request().put(Entity.entity(author, MediaType.APPLICATION_JSON));
+        Author alli = target("/authors/1").request().put(Entity.entity(author, MediaType.APPLICATION_JSON), Author.class);
 
-        final Author alli = target("/author/1")
-                .request(MediaType.APPLICATION_JSON)
-                .get(Author.class);
-
-        assertThat(alli.getName())
-                .isEqualTo("Alli");
+        assertThat(alli.getName()).isEqualTo("Alli");
 
     }
 
@@ -124,7 +123,8 @@ public class ExampleResourceTest extends JerseyTest {
         when(environment.metrics()).thenReturn(metricRegistry);
 
         Map<String, String> props = new HashMap<String, String>();
-        props.put("user", "sa");
+        props.put("username", "sa");
+        props.put("password", "");
         props.put("url", "jdbc:hsqldb:mem:dwtest" + System.nanoTime());
 
         try {
@@ -139,7 +139,11 @@ public class ExampleResourceTest extends JerseyTest {
         dbConfig.setValidationQuery("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
 
         final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
-        config.register(new UnitOfJooqApplicationListener(new DefaultConfiguration(), dbConfig.build(metricRegistry, "jooq")));
+
+        DefaultConfiguration jooqConfiguration = new DefaultConfiguration();
+        jooqConfiguration.set(new DataSourceConnectionProvider(dbConfig.build(metricRegistry, "jooq")));
+        config.register(new UnitOfJooqApplicationListener(jooqConfiguration));
+
         config.register(ConfigurationProvider.class);
         config.register(new ExampleResource());
         config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),

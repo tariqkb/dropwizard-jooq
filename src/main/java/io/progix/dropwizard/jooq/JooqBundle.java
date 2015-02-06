@@ -7,6 +7,7 @@ import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.jooq.Configuration;
+import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 
 public abstract class JooqBundle<T extends io.dropwizard.Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
@@ -24,9 +25,10 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         ManagedDataSource dataSource = dbConfig.build(environment.metrics(), "jooq");
 
         this.configuration = new DefaultConfiguration();
+        this.configuration.set(new DataSourceConnectionProvider(dataSource));
         configure(this.configuration);
 
-        environment.jersey().register(new UnitOfJooqApplicationListener(this.configuration, dataSource));
+        environment.jersey().register(new UnitOfJooqApplicationListener(this.configuration));
         environment.jersey().register(ConfigurationProvider.class);
 
         environment.lifecycle().manage(dataSource);

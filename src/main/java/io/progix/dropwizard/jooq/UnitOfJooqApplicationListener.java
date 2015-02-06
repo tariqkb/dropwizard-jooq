@@ -23,60 +23,59 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     private Map<Method, UnitOfJooq> methodMap = new HashMap<Method, UnitOfJooq>();
     private DefaultConfiguration base;
-    private DataSource dataSource;
 
-    public UnitOfJooqApplicationListener(DefaultConfiguration base, DataSource dataSource) {
+    public UnitOfJooqApplicationListener(DefaultConfiguration base) {
         this.base = base;
-        this.dataSource = dataSource;
     }
 
     private static class UnitOfJooqEventListener implements RequestEventListener {
         private final Map<Method, UnitOfJooq> methodMap;
-        private UnitOfJooq unitOfJooq;
 
-        private DefaultConfiguration base;
-        private DataSource dataSource;
+        private final Connection connection;
 
-        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap, DefaultConfiguration base, DataSource dataSource) {
+        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap, Connection connection) {
             this.methodMap = methodMap;
-            this.base = base;
-            this.dataSource = dataSource;
+            this.connection = connection;
         }
 
         @Override
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
-                this.unitOfJooq = this.methodMap.get(event.getUriInfo()
+                UnitOfJooq unitOfJooq = this.methodMap.get(event.getUriInfo()
                         .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
 
                 if (unitOfJooq != null) {
-                    try {
-                        ResourceConfigurationContext.bind((DefaultConfiguration) base.derive(dataSource.getConnection()));
-                    } catch (SQLException e) {
-                        throw new DataAccessException("An error occurred while retrieving a connection.", e);
-                    }
+                    ResourceConfigurationContext.bind((DefaultConfiguration) base.derive(base.connectionProvider().acquire()));
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-                //commit the connection and close it
-                ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).commit();
+                if (ResourceConfigurationContext.hasBind()) {
+                    DefaultConnectionProvider connProvider = (DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider();
 
-                try {
-                    ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).acquire().close();
-                } catch (SQLException e) {
-                    throw new DataAccessException("An error occurred while attempting to close a connection.", e);
-                } finally {
-                    ResourceConfigurationContext.unbind();
+                    //commit the connection and close it
+                    connProvider.commit();
+
+                    try {
+                        connProvider.acquire().close();
+                    } catch (SQLException e) {
+                        throw new DataAccessException("An error occurred while attempting to close a connection.", e);
+                    } finally {
+                        ResourceConfigurationContext.unbind();
+                    }
                 }
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-                //rollback the connection and close it
-                ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).rollback();
+                if (ResourceConfigurationContext.hasBind()) {
+                    DefaultConnectionProvider connProvider = (DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider();
 
-                try {
-                    ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).acquire().close();
-                } catch (SQLException e) {
-                    throw new DataAccessException("An error occurred while attempting to close a connection.", e);
-                } finally {
-                    ResourceConfigurationContext.unbind();
+                    //rollback the connection and close it
+                    connProvider.rollback();
+
+                    try {
+                        connProvider.acquire().close();
+                    } catch (SQLException e) {
+                        throw new DataAccessException("An error occurred while attempting to close a connection.", e);
+                    } finally {
+                        ResourceConfigurationContext.unbind();
+                    }
                 }
             }
         }
@@ -101,7 +100,7 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     @Override
     public RequestEventListener onRequest(RequestEvent event) {
-        return new UnitOfJooqEventListener(methodMap, base, dataSource);
+        return new UnitOfJooqEventListener(methodMap, base);
     }
 
     private void registerUnitOfWorkAnnotations(ResourceMethod method) {

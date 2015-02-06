@@ -30,10 +30,10 @@ import static org.mockito.Mockito.*;
 
 public class UnitOfJooqApplicationListenerTest {
 
-    private final DefaultConfiguration configuration = mock(DefaultConfiguration.class);
-    private final DefaultConnectionProvider connectionProvider = mock(DefaultConnectionProvider.class);
-    private final DataSource dataSource = mock(DataSource.class);
-    private final UnitOfJooqApplicationListener listener = new UnitOfJooqApplicationListener(configuration, dataSource);
+    private final DefaultConfiguration configuration = new DefaultConfiguration();
+    private final DefaultConnectionProvider connectionProvider = new DefaultConnectionProvider();
+    private final UnitOfJooqApplicationListener listener = new UnitOfJooqApplicationListener(configuration);
+
     private final ApplicationEvent appEvent = mock(ApplicationEvent.class);
     private final ExtendedUriInfo uriInfo = mock(ExtendedUriInfo.class);
 
@@ -44,13 +44,6 @@ public class UnitOfJooqApplicationListenerTest {
 
     @Before
     public void setUp() throws SQLException, NoSuchMethodException {
-        final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
-        when(configuration.derive(captor.capture())).thenReturn(configuration);
-        when(configuration.connectionProvider()).thenReturn(connectionProvider);
-
-        when(dataSource.getConnection()).thenReturn(mock(Connection.class));
-        when(connectionProvider.acquire()).thenReturn(mock(Connection.class));
-
         when(appEvent.getType()).thenReturn(ApplicationEvent.Type.INITIALIZATION_APP_FINISHED);
         when(requestMethodStartEvent.getType()).thenReturn(RequestEvent.Type.RESOURCE_METHOD_START);
         when(requestMethodFinishEvent.getType()).thenReturn(RequestEvent.Type.RESOURCE_METHOD_FINISHED);
@@ -68,7 +61,7 @@ public class UnitOfJooqApplicationListenerTest {
 
         final ArgumentCaptor<Connection> captor = ArgumentCaptor.forClass(Connection.class);
 
-        verify(dataSource).getConnection();
+        verify(connectionProvider).acquire();
         verify(configuration).derive(captor.capture());
         assertThat(ResourceConfigurationContext.hasBind()).isFalse();
     }
@@ -77,9 +70,9 @@ public class UnitOfJooqApplicationListenerTest {
     public void opensAndCommits() throws SQLException {
         execute();
 
-        final InOrder inOrder = inOrder(dataSource, connectionProvider);
+        final InOrder inOrder = inOrder(connectionProvider);
 
-        inOrder.verify(dataSource).getConnection();
+        inOrder.verify(connectionProvider).acquire();
         inOrder.verify(connectionProvider).commit();
         inOrder.verify(connectionProvider.acquire()).close();
         assertThat(ResourceConfigurationContext.hasBind()).isFalse();
@@ -89,9 +82,9 @@ public class UnitOfJooqApplicationListenerTest {
     public void opensAndRollsback() throws SQLException {
         executeWithException();
 
-        final InOrder inOrder = inOrder(dataSource, connectionProvider);
+        final InOrder inOrder = inOrder(connectionProvider);
 
-        inOrder.verify(dataSource).getConnection();
+        inOrder.verify(connectionProvider).acquire();
         inOrder.verify(connectionProvider).commit();
         inOrder.verify(connectionProvider.acquire()).close();
         assertThat(ResourceConfigurationContext.hasBind()).isFalse();

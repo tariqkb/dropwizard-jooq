@@ -7,6 +7,7 @@ import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
 import io.progix.dropwizard.jooq.ConfigurationProvider;
+import io.progix.dropwizard.jooq.HSQLDBInit;
 import io.progix.dropwizard.jooq.JooqBundle;
 import io.progix.dropwizard.jooq.JooqHealthCheck;
 import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
@@ -15,6 +16,9 @@ import org.jooq.SQLDialect;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -44,6 +48,22 @@ public class JooqBundleTest {
         when(environment.healthChecks()).thenReturn(healthChecks);
         when(environment.jersey()).thenReturn(jerseyEnvironment);
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
+
+        Map<String, String> props = new HashMap<String, String>();
+        props.put("username", "sa");
+        props.put("password", "");
+        props.put("url", "jdbc:hsqldb:mem:dwtest" + System.nanoTime());
+
+        try {
+            HSQLDBInit.init(props);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        dbConfig.setUrl(props.get("url"));
+        dbConfig.setUser(props.get("user"));
+        dbConfig.setDriverClass("org.hsqldb.jdbcDriver");
+        dbConfig.setValidationQuery("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
     }
 
     @Test
@@ -77,15 +97,13 @@ public class JooqBundleTest {
 
     @Test
     public void registersJooqHealthCheck() throws Exception {
-        dbConfig.setValidationQuery("SELECT 1;");
-
         bundle.run(configuration, environment);
 
         final ArgumentCaptor<JooqHealthCheck> captor = ArgumentCaptor.forClass(JooqHealthCheck.class);
 
         verify(healthChecks).register(eq("jooq"), captor.capture());
-        assertThat(captor.getValue().getConfiguration()).isEqualTo(bundle.getConfiguration());
-        assertThat(captor.getValue().getValidationQuery()).isEqualTo("SELECT 1;");
+        assertThat(captor.getValue().getConfiguration().dialect()).isEqualTo(bundle.getConfiguration().dialect());
+        assertThat(captor.getValue().getValidationQuery()).isEqualTo("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
     }
 
 }
