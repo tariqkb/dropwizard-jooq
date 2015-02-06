@@ -16,7 +16,7 @@ package io.progix.dropwizard.jooq.schema.tables;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Author extends org.jooq.impl.TableImpl<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> {
 
-	private static final long serialVersionUID = -375284768;
+	private static final long serialVersionUID = 975844061;
 
 	/**
 	 * The reference instance of <code>PUBLIC.AUTHOR</code>
@@ -61,6 +61,22 @@ public class Author extends org.jooq.impl.TableImpl<io.progix.dropwizard.jooq.sc
 
 	private Author(java.lang.String alias, org.jooq.Table<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> aliased, org.jooq.Field<?>[] parameters) {
 		super(alias, io.progix.dropwizard.jooq.schema.Public.PUBLIC, aliased, parameters, "");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> getPrimaryKey() {
+		return io.progix.dropwizard.jooq.schema.Keys.SYS_PK_10093;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public java.util.List<org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord>> getKeys() {
+		return java.util.Arrays.<org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord>>asList(io.progix.dropwizard.jooq.schema.Keys.SYS_PK_10093);
 	}
 
 	/**

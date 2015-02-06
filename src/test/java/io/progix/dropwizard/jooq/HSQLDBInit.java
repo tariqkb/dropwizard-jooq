@@ -29,6 +29,8 @@ public class HSQLDBInit {
 
         jooq.createTable(AUTHOR).column(AUTHOR.ID, SQLDataType.INTEGER).column(AUTHOR.NAME, SQLDataType.VARCHAR).execute();
 
+        jooq.execute("ALTER TABLE author ADD PRIMARY KEY (id)");
+
         jooq.insertInto(AUTHOR).set(AUTHOR.ID, 1).set(AUTHOR.NAME, "Tariq").execute();
 
         conn.commit();

@@ -26,6 +26,7 @@ public class Keys {
 	// UNIQUE and PRIMARY KEY definitions
 	// -------------------------------------------------------------------------
 
+	public static final org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> SYS_PK_10093 = UniqueKeys0.SYS_PK_10093;
 
 	// -------------------------------------------------------------------------
 	// FOREIGN KEY definitions
@@ -35,4 +36,8 @@ public class Keys {
 	// -------------------------------------------------------------------------
 	// [#1459] distribute members to avoid static initialisers > 64kb
 	// -------------------------------------------------------------------------
+
+	private static class UniqueKeys0 extends org.jooq.impl.AbstractKeys {
+		public static final org.jooq.UniqueKey<io.progix.dropwizard.jooq.schema.tables.records.AuthorRecord> SYS_PK_10093 = createUniqueKey(io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR, io.progix.dropwizard.jooq.schema.tables.Author.AUTHOR.ID);
+	}
 }

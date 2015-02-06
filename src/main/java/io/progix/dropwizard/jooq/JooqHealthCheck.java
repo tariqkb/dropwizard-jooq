@@ -26,4 +26,12 @@ public class JooqHealthCheck extends HealthCheck {
 
         return Result.healthy();
     }
+
+    public Configuration getConfiguration() {
+        return configuration;
+    }
+
+    public String getValidationQuery() {
+        return validationQuery;
+    }
 }

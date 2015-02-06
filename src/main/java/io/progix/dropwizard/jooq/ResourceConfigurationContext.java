@@ -16,4 +16,6 @@ public class ResourceConfigurationContext {
     public static void unbind() {
         configuration_tl.remove();
     }
+
+    public static boolean hasBind() { return configuration_tl.get() != null; }
 }

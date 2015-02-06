@@ -50,21 +50,34 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
                         .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
 
                 if (unitOfJooq != null) {
-                    Connection connection = null;
                     try {
-                        connection = dataSource.getConnection();
+                        ResourceConfigurationContext.bind((DefaultConfiguration) base.derive(dataSource.getConnection()));
                     } catch (SQLException e) {
                         throw new DataAccessException("An error occurred while retrieving a connection.", e);
                     }
-
-                    ResourceConfigurationContext.bind((DefaultConfiguration) base.derive(connection));
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
                 //commit the connection and close it
-                ((DefaultConnectionProvider)ResourceConfigurationContext.get().connectionProvider()).commit();
+                ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).commit();
+
+                try {
+                    ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).acquire().close();
+                } catch (SQLException e) {
+                    throw new DataAccessException("An error occurred while attempting to close a connection.", e);
+                } finally {
+                    ResourceConfigurationContext.unbind();
+                }
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-                //rollback the connection
-                ((DefaultConnectionProvider)ResourceConfigurationContext.get().connectionProvider()).rollback();
+                //rollback the connection and close it
+                ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).rollback();
+
+                try {
+                    ((DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider()).acquire().close();
+                } catch (SQLException e) {
+                    throw new DataAccessException("An error occurred while attempting to close a connection.", e);
+                } finally {
+                    ResourceConfigurationContext.unbind();
+                }
             }
         }
     }
@@ -74,12 +87,12 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
         if (event.getType() == ApplicationEvent.Type.INITIALIZATION_APP_FINISHED) {
             for (Resource resource : event.getResourceModel().getResources()) {
                 for (ResourceMethod method : resource.getAllMethods()) {
-                    registerUnitOfWorkAnnotations (method);
+                    registerUnitOfWorkAnnotations(method);
                 }
 
                 for (Resource childResource : resource.getChildResources()) {
                     for (ResourceMethod method : childResource.getAllMethods()) {
-                        registerUnitOfWorkAnnotations (method);
+                        registerUnitOfWorkAnnotations(method);
                     }
                 }
             }
@@ -88,10 +101,10 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     @Override
     public RequestEventListener onRequest(RequestEvent event) {
-        return new UnitOfJooqEventListener (methodMap, base, dataSource);
+        return new UnitOfJooqEventListener(methodMap, base, dataSource);
     }
 
-    private void registerUnitOfWorkAnnotations (ResourceMethod method) {
+    private void registerUnitOfWorkAnnotations(ResourceMethod method) {
         UnitOfJooq annotation = method.getInvocable().getDefinitionMethod().getAnnotation(UnitOfJooq.class);
 
         if (annotation != null) {

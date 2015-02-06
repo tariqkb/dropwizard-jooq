@@ -29,6 +29,8 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         environment.jersey().register(new UnitOfJooqApplicationListener(this.configuration, dataSource));
         environment.jersey().register(ConfigurationProvider.class);
 
+        environment.lifecycle().manage(dataSource);
+
         Configuration healthCheckConfiguration = this.configuration.derive(dataSource.getConnection());
         environment.healthChecks().register("jooq", new JooqHealthCheck(healthCheckConfiguration, dbConfig.getValidationQuery()));
     }
