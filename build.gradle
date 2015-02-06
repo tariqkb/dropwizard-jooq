@@ -24,6 +24,7 @@ version = "0.1.0"
 
 repositories {
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -90,19 +91,19 @@ def xml = new groovy.xml.MarkupBuilder(writer)
         }
     }
 }
-task genJooq << {
-        io.progix.dropwizard.jooq.HSQLDBInit.init(
-            [url:'jdbc:hsqldb:mem:dwtest', username:'sa', password:'']
-        )
+task jooq(dependsOn: testClasses) << {
+    io.progix.dropwizard.jooq.HSQLDBInit.init(
+        [url:'jdbc:hsqldb:mem:dwtest', username:'sa', password:'']
+    )
 
-        org.jooq.util.GenerationTool.generate(
-                javax.xml.bind.JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.util.jaxb.Configuration.class)
-        )
+    org.jooq.util.GenerationTool.generate(
+            javax.xml.bind.JAXB.unmarshal(new StringReader(writer.toString()), org.jooq.util.jaxb.Configuration.class)
+    )
 }
 
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
-    from Javadoc
+    from javadoc
 }
 
 task sourcesJar(type: Jar) {
