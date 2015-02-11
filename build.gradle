@@ -81,7 +81,7 @@ def xml = new groovy.xml.MarkupBuilder(writer)
             relations true
             deprecated false
             records true
-            immutablePojos true
+            immutablePojos false
             fluentSetters true
             daos true
         }

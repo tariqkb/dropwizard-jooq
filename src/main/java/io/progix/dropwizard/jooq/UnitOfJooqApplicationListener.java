@@ -7,7 +7,6 @@ import org.glassfish.jersey.server.monitoring.ApplicationEventListener;
 import org.glassfish.jersey.server.monitoring.RequestEvent;
 import org.glassfish.jersey.server.monitoring.RequestEventListener;
 import org.jooq.exception.DataAccessException;
-import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultConnectionProvider;
 
 import javax.sql.DataSource;
@@ -21,63 +20,67 @@ import java.util.Map;
 @Provider
 public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
-    private Map<Method, UnitOfJooq> methodMap = new HashMap<Method, UnitOfJooq>();
-    private DefaultConfiguration base;
+    private final Map<Method, UnitOfJooq> methodMap = new HashMap<Method, UnitOfJooq>();
+    private final DataSource dataSource;
 
-    public UnitOfJooqApplicationListener(DefaultConfiguration base) {
-        this.base = base;
+    public UnitOfJooqApplicationListener(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
-    private static class UnitOfJooqEventListener implements RequestEventListener {
+    public static class UnitOfJooqEventListener implements RequestEventListener {
+
         private final Map<Method, UnitOfJooq> methodMap;
 
-        private final Connection connection;
+        private final DefaultConnectionProvider connectionProvider;
 
-        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap, Connection connection) {
+        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap, DefaultConnectionProvider connectionProvider) {
             this.methodMap = methodMap;
-            this.connection = connection;
+            this.connectionProvider = connectionProvider;
         }
 
         @Override
         public void onEvent(RequestEvent event) {
             if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
-                UnitOfJooq unitOfJooq = this.methodMap.get(event.getUriInfo()
-                        .getMatchedResourceMethod().getInvocable().getDefinitionMethod());
+                UnitOfJooq unitOfJooq = this.methodMap.get(event.getUriInfo().getMatchedResourceMethod().getInvocable().getDefinitionMethod());
 
                 if (unitOfJooq != null) {
-                    ResourceConfigurationContext.bind((DefaultConfiguration) base.derive(base.connectionProvider().acquire()));
+                    ConnectionProviderContext.bind(connectionProvider);
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-                if (ResourceConfigurationContext.hasBind()) {
-                    DefaultConnectionProvider connProvider = (DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider();
-
+                if (ConnectionProviderContext.hasBind()) {
                     //commit the connection and close it
-                    connProvider.commit();
+                    ConnectionProviderContext.get().commit();
 
                     try {
-                        connProvider.acquire().close();
+                        ConnectionProviderContext.get().acquire().close();
                     } catch (SQLException e) {
                         throw new DataAccessException("An error occurred while attempting to close a connection.", e);
                     } finally {
-                        ResourceConfigurationContext.unbind();
+                        ConnectionProviderContext.unbind();
                     }
                 }
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-                if (ResourceConfigurationContext.hasBind()) {
-                    DefaultConnectionProvider connProvider = (DefaultConnectionProvider) ResourceConfigurationContext.get().connectionProvider();
-
+                if (ConnectionProviderContext.hasBind()) {
                     //rollback the connection and close it
-                    connProvider.rollback();
+                    ConnectionProviderContext.get().rollback();
 
                     try {
-                        connProvider.acquire().close();
+                        ConnectionProviderContext.get().acquire().close();
                     } catch (SQLException e) {
                         throw new DataAccessException("An error occurred while attempting to close a connection.", e);
                     } finally {
-                        ResourceConfigurationContext.unbind();
+                        ConnectionProviderContext.unbind();
                     }
                 }
             }
+        }
+
+        public Map<Method, UnitOfJooq> getMethodMap() {
+            return methodMap;
+        }
+
+        public DefaultConnectionProvider getConnectionProvider() {
+            return connectionProvider;
         }
     }
 
@@ -100,7 +103,12 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     @Override
     public RequestEventListener onRequest(RequestEvent event) {
-        return new UnitOfJooqEventListener(methodMap, base);
+        try {
+            Connection connection = dataSource.getConnection();
+            return new UnitOfJooqEventListener(methodMap, new DefaultConnectionProvider(connection));
+        } catch (SQLException e) {
+            throw new DataAccessException("An error occurred while opening a connection", e);
+        }
     }
 
     private void registerUnitOfWorkAnnotations(ResourceMethod method) {
@@ -110,5 +118,9 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
             this.methodMap.put(method.getInvocable().getDefinitionMethod(), annotation);
         }
 
+    }
+
+    public Map<Method, UnitOfJooq> getMethodMap() {
+        return methodMap;
     }
 }

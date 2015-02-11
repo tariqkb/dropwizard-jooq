@@ -16,10 +16,12 @@ package io.progix.dropwizard.jooq.schema.tables.pojos;
 @java.lang.SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Author implements java.io.Serializable {
 
-	private static final long serialVersionUID = 1709205953;
+	private static final long serialVersionUID = -1697766702;
 
-	private final java.lang.Integer id;
-	private final java.lang.String  name;
+	private java.lang.Integer id;
+	private java.lang.String  name;
+
+	public Author() {}
 
 	public Author(
 		java.lang.Integer id,
@@ -33,7 +35,17 @@ public class Author implements java.io.Serializable {
 		return this.id;
 	}
 
+	public Author setId(java.lang.Integer id) {
+		this.id = id;
+		return this;
+	}
+
 	public java.lang.String getName() {
 		return this.name;
+	}
+
+	public Author setName(java.lang.String name) {
+		this.name = name;
+		return this;
 	}
 }

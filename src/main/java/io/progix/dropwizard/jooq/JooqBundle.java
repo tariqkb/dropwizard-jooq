@@ -12,7 +12,7 @@ import org.jooq.impl.DefaultConfiguration;
 
 public abstract class JooqBundle<T extends io.dropwizard.Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
 
-    private DefaultConfiguration configuration;
+    private Configuration configuration;
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
@@ -20,21 +20,20 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
     }
 
     @Override
-    public void run(T configuration, Environment environment) throws Exception {
-        final DataSourceFactory dbConfig = getDataSourceFactory(configuration);
+    public void run(T dwConfiguration, Environment environment) throws Exception {
+        final DataSourceFactory dbConfig = getDataSourceFactory(dwConfiguration);
         ManagedDataSource dataSource = dbConfig.build(environment.metrics(), "jooq");
 
         this.configuration = new DefaultConfiguration();
         this.configuration.set(new DataSourceConnectionProvider(dataSource));
         configure(this.configuration);
 
-        environment.jersey().register(new UnitOfJooqApplicationListener(this.configuration));
-        environment.jersey().register(ConfigurationProvider.class);
+        environment.jersey().register(new UnitOfJooqApplicationListener(dataSource));
+        environment.jersey().register(new ConfigurationFactoryProvider.Binder(this.configuration));
 
         environment.lifecycle().manage(dataSource);
 
-        Configuration healthCheckConfiguration = this.configuration.derive(dataSource.getConnection());
-        environment.healthChecks().register("jooq", new JooqHealthCheck(healthCheckConfiguration, dbConfig.getValidationQuery()));
+        environment.healthChecks().register("jooq", new JooqHealthCheck(this.configuration, dbConfig.getValidationQuery()));
     }
 
     public Configuration getConfiguration() {

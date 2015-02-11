@@ -6,11 +6,7 @@ import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.jersey.setup.JerseyEnvironment;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
-import io.progix.dropwizard.jooq.ConfigurationProvider;
-import io.progix.dropwizard.jooq.HSQLDBInit;
-import io.progix.dropwizard.jooq.JooqBundle;
-import io.progix.dropwizard.jooq.JooqHealthCheck;
-import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
+import io.progix.dropwizard.jooq.*;
 import org.jooq.Configuration;
 import org.jooq.SQLDialect;
 import org.junit.Before;
@@ -24,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class JooqBundleTest {
+
     private final DataSourceFactory dbConfig = new DataSourceFactory();
     private final io.dropwizard.Configuration configuration = mock(io.dropwizard.Configuration.class);
     private final HealthCheckRegistry healthChecks = mock(HealthCheckRegistry.class);
@@ -85,14 +82,9 @@ public class JooqBundleTest {
         bundle.run(configuration, environment);
 
         final ArgumentCaptor<UnitOfJooqApplicationListener> captor = ArgumentCaptor.forClass(UnitOfJooqApplicationListener.class);
-        verify(jerseyEnvironment).register(captor.capture());
-    }
-
-    @Test
-    public void registersJooqConfigurationProvider() throws Exception {
-        bundle.run(configuration, environment);
-
-        verify(jerseyEnvironment).register(ConfigurationProvider.class);
+        verify(jerseyEnvironment, times(2)).register(captor.capture());
+        final ArgumentCaptor<ConfigurationFactoryProvider> configProviderCaptor = ArgumentCaptor.forClass(ConfigurationFactoryProvider.class);
+        verify(jerseyEnvironment, times(2)).register(configProviderCaptor.capture());
     }
 
     @Test

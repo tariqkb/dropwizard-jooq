@@ -7,43 +7,34 @@ import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
-import io.progix.dropwizard.jooq.ConfigurationProvider;
+import io.progix.dropwizard.jooq.ConfigurationFactoryProvider;
 import io.progix.dropwizard.jooq.HSQLDBInit;
-import io.progix.dropwizard.jooq.JooqBundle;
 import io.progix.dropwizard.jooq.UnitOfJooq;
-
-import static io.progix.dropwizard.jooq.schema.Tables.*;
-
 import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
-import io.progix.dropwizard.jooq.schema.tables.daos.AuthorDao;
 import io.progix.dropwizard.jooq.schema.tables.pojos.Author;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.test.JerseyTest;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
-import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 import org.junit.Test;
 
 import javax.validation.Validation;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static io.progix.dropwizard.jooq.schema.Tables.AUTHOR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.failBecauseExceptionWasNotThrown;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ExampleResourceTest extends JerseyTest {
 
@@ -64,7 +55,7 @@ public class ExampleResourceTest extends JerseyTest {
                 return author;
             }
 
-            throw new WebApplicationException(405);
+            throw new WebApplicationException(404);
         }
 
         @PUT
@@ -79,21 +70,18 @@ public class ExampleResourceTest extends JerseyTest {
 
     @Test
     public void findsExistingData() throws Exception {
-        final Author configAuthor = target("/authors/0").request(MediaType.APPLICATION_JSON).get(Author.class);
+        final Author configAuthor = target("/authors/1").request(MediaType.APPLICATION_JSON).get(Author.class);
 
-        assertThat(configAuthor.getName())
-                .isEqualTo("Tariq");
+        assertThat(configAuthor.getName()).isEqualTo("Tariq");
     }
 
     @Test
     public void doesNotFindMissingData() throws Exception {
         try {
-            target("/authors/1").request(MediaType.APPLICATION_JSON)
-                    .get(Author.class);
+            target("/authors/2").request(MediaType.APPLICATION_JSON).get(Author.class);
             failBecauseExceptionWasNotThrown(WebApplicationException.class);
         } catch (WebApplicationException e) {
-            assertThat(e.getResponse().getStatus())
-                    .isEqualTo(404);
+            assertThat(e.getResponse().getStatus()).isEqualTo(404);
         }
     }
 
@@ -101,7 +89,7 @@ public class ExampleResourceTest extends JerseyTest {
     public void createsNewData() throws Exception {
         final Author author = new Author(null, "Alli");
 
-        Author alli = target("/authors/1").request().put(Entity.entity(author, MediaType.APPLICATION_JSON), Author.class);
+        Author alli = target("/authors/2").request().put(Entity.entity(author, MediaType.APPLICATION_JSON), Author.class);
 
         assertThat(alli.getName()).isEqualTo("Alli");
 
@@ -109,8 +97,7 @@ public class ExampleResourceTest extends JerseyTest {
 
     @Override
     protected void configureClient(ClientConfig config) {
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
     }
 
     @Override
@@ -140,14 +127,11 @@ public class ExampleResourceTest extends JerseyTest {
 
         final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
 
-        DefaultConfiguration jooqConfiguration = new DefaultConfiguration();
-        jooqConfiguration.set(new DataSourceConnectionProvider(dbConfig.build(metricRegistry, "jooq")));
-        config.register(new UnitOfJooqApplicationListener(jooqConfiguration));
+        config.register(new UnitOfJooqApplicationListener(dbConfig.build(metricRegistry, "jooq")));
 
-        config.register(ConfigurationProvider.class);
+        config.register(new ConfigurationFactoryProvider.Binder(new DefaultConfiguration().set(SQLDialect.HSQLDB)));
         config.register(new ExampleResource());
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
         return config;
     }
 }
