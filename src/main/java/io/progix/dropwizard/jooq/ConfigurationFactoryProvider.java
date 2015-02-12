@@ -11,6 +11,7 @@ import org.glassfish.jersey.server.internal.inject.ParamInjectionResolver;
 import org.glassfish.jersey.server.model.Parameter;
 import org.glassfish.jersey.server.spi.internal.ValueFactoryProvider;
 import org.jooq.Configuration;
+import org.jooq.SQLDialect;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,7 +25,7 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
     @Inject
     protected ConfigurationFactoryProvider(final MultivaluedParameterExtractorProvider extractorProvider, final ServiceLocator injector,
             final Configuration configuration) {
-        super(extractorProvider, injector, Parameter.Source.CONTEXT);
+        super(extractorProvider, injector, Parameter.Source.UNKNOWN);
         this.configuration = configuration;
     }
 
@@ -33,7 +34,8 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
         return new ConfigurationFactory(configuration);
     }
 
-    public static class ConfigurationInjectionResolver extends ParamInjectionResolver<Context> {
+    @Singleton
+    public static class ConfigurationInjectionResolver extends ParamInjectionResolver<JooqConfiguration> {
 
         public ConfigurationInjectionResolver() {
             super(ConfigurationFactoryProvider.class);
@@ -50,9 +52,9 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
         @Override
         protected void configure() {
-            bind(this.configuration).to(Configuration.class);
+            bind(configuration).to(Configuration.class);
             bind(ConfigurationFactoryProvider.class).to(ValueFactoryProvider.class).in(Singleton.class);
-            bind(ConfigurationInjectionResolver.class).to(new TypeLiteral<InjectionResolver<Context>>() {
+            bind(ConfigurationInjectionResolver.class).to(new TypeLiteral<InjectionResolver<JooqConfiguration>>() {
             }).in(Singleton.class);
         }
     }

@@ -40,10 +40,11 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
         @Override
         public void onEvent(RequestEvent event) {
-            if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_START) {
+            if (event.getType() == RequestEvent.Type.REQUEST_MATCHED) {
                 UnitOfJooq unitOfJooq = this.methodMap.get(event.getUriInfo().getMatchedResourceMethod().getInvocable().getDefinitionMethod());
 
                 if (unitOfJooq != null) {
+                    event.getContainerRequest().setProperty("connProvider", connectionProvider);
                     ConnectionProviderContext.bind(connectionProvider);
                 }
             } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {

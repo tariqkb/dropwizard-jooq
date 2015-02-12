@@ -17,5 +17,7 @@ public class ConnectionProviderContext {
         CONNECTION_PROVIDER_THREAD_LOCAL.remove();
     }
 
-    public static boolean hasBind() { return CONNECTION_PROVIDER_THREAD_LOCAL.get() != null; }
+    public static boolean hasBind() {
+        return CONNECTION_PROVIDER_THREAD_LOCAL.get() != null;
+    }
 }

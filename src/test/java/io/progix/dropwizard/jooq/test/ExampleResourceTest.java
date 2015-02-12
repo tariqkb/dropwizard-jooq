@@ -9,6 +9,7 @@ import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
 import io.progix.dropwizard.jooq.ConfigurationFactoryProvider;
 import io.progix.dropwizard.jooq.HSQLDBInit;
+import io.progix.dropwizard.jooq.JooqConfiguration;
 import io.progix.dropwizard.jooq.UnitOfJooq;
 import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
 import io.progix.dropwizard.jooq.schema.tables.pojos.Author;
@@ -21,6 +22,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Validation;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
@@ -38,15 +40,20 @@ import static org.mockito.Mockito.when;
 
 public class ExampleResourceTest extends JerseyTest {
 
-    @Path("/authors")
+    @Path("/authors/{index}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public static class ExampleResource {
 
+        @JooqConfiguration
+        Configuration config;
+
+        @PathParam("index")
+        int index;
+
         @GET
-        @Path("/{index}")
         @UnitOfJooq
-        public Author get(@PathParam("index") int index, @Context Configuration config) {
+        public Author get() {
             DSLContext context = DSL.using(config);
 
             Author author = context.select().from(AUTHOR).where(AUTHOR.ID.equal(index)).fetchOneInto(Author.class);
@@ -59,9 +66,8 @@ public class ExampleResourceTest extends JerseyTest {
         }
 
         @PUT
-        @Path("/{index}")
         @UnitOfJooq
-        public Author put(@PathParam("index") int index, @Context Configuration config) {
+        public Author put() {
             Author a = DSL.using(config).insertInto(AUTHOR).set(AUTHOR.ID, index).set(AUTHOR.NAME, "Alli").returning().fetchOne().into(Author.class);
 
             return a;
@@ -130,7 +136,7 @@ public class ExampleResourceTest extends JerseyTest {
         config.register(new UnitOfJooqApplicationListener(dbConfig.build(metricRegistry, "jooq")));
 
         config.register(new ConfigurationFactoryProvider.Binder(new DefaultConfiguration().set(SQLDialect.HSQLDB)));
-        config.register(new ExampleResource());
+        config.register(ExampleResource.class);
         config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
         return config;
     }
