@@ -20,7 +20,7 @@ import java.util.Map;
 @Provider
 public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
-    private final Map<Method, UnitOfJooq> methodMap = new HashMap<Method, UnitOfJooq>();
+    private final Map<Method, UnitOfJooq> methodMap = new HashMap<>();
     private final DataSource dataSource;
 
     public UnitOfJooqApplicationListener(DataSource dataSource) {

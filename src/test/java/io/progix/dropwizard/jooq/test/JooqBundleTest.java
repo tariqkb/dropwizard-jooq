@@ -94,7 +94,7 @@ public class JooqBundleTest {
         final ArgumentCaptor<JooqHealthCheck> captor = ArgumentCaptor.forClass(JooqHealthCheck.class);
 
         verify(healthChecks).register(eq("jooq"), captor.capture());
-        assertThat(captor.getValue().getConfiguration().dialect()).isEqualTo(bundle.getConfiguration().dialect());
+        assertThat(captor.getValue().getDslContext().configuration().dialect()).isEqualTo(bundle.getConfiguration().dialect());
         assertThat(captor.getValue().getValidationQuery()).isEqualTo("SELECT 1 FROM INFORMATION_SCHEMA.SYSTEM_USERS");
     }
 

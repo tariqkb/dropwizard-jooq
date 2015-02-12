@@ -7,6 +7,7 @@ import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import org.jooq.Configuration;
+import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
 
@@ -33,7 +34,7 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
 
         environment.lifecycle().manage(dataSource);
 
-        environment.healthChecks().register("jooq", new JooqHealthCheck(this.configuration, dbConfig.getValidationQuery()));
+        environment.healthChecks().register("jooq", new JooqHealthCheck(DSL.using(this.configuration), dbConfig.getValidationQuery()));
     }
 
     public Configuration getConfiguration() {
