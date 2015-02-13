@@ -37,7 +37,8 @@ dependencies {
     testCompile 'org.assertj:assertj-core:1.7.1';
     testCompile 'org.mockito:mockito-core:1.10.17'
 
-    runtime 'org.hsqldb:hsqldb:2.3.2'
+    compile 'org.hsqldb:hsqldb:2.3.2'
+    compile 'mysql:mysql-connector-java:5.1.34'
 }
 
 test {
@@ -92,7 +93,7 @@ def xml = new groovy.xml.MarkupBuilder(writer)
     }
 }
 task jooq(dependsOn: testClasses) << {
-    io.progix.dropwizard.jooq.HSQLDBInit.init(
+    io.progix.dropwizard.jooq.HSQLDBInit.initPublic(
         [url:'jdbc:hsqldb:mem:dwtest', username:'sa', password:'']
     )
 

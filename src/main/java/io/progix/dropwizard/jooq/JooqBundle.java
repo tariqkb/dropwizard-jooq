@@ -29,8 +29,8 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         this.configuration.set(new DataSourceConnectionProvider(dataSource));
         configure(this.configuration);
 
-        environment.jersey().register(new UnitOfJooqApplicationListener());
-        environment.jersey().register(new ConfigurationFactoryProvider.Binder(this.configuration, dataSource));
+        environment.jersey().register(JooqTransactionalApplicationListener.class);
+        environment.jersey().register(new ConfigurationFactoryProvider.Binder(this.configuration));
 
         environment.lifecycle().manage(dataSource);
 

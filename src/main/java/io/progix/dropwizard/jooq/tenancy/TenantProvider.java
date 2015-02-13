@@ -1,5 +1,9 @@
 package io.progix.dropwizard.jooq.tenancy;
 
+import org.glassfish.jersey.server.ContainerRequest;
+
 public interface TenantProvider {
-    String get();
+    String getTenantIdentifier(ContainerRequest request);
+
+    String inputSchema();
 }

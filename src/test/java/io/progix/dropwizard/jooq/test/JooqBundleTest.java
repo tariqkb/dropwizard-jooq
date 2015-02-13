@@ -52,7 +52,7 @@ public class JooqBundleTest {
         props.put("url", "jdbc:hsqldb:mem:dwtest" + System.nanoTime());
 
         try {
-            HSQLDBInit.init(props);
+            HSQLDBInit.initPublic(props);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -81,10 +81,10 @@ public class JooqBundleTest {
     public void registersTransactionListener() throws Exception {
         bundle.run(configuration, environment);
 
-        final ArgumentCaptor<UnitOfJooqApplicationListener> captor = ArgumentCaptor.forClass(UnitOfJooqApplicationListener.class);
-        verify(jerseyEnvironment, times(2)).register(captor.capture());
+        final ArgumentCaptor<JooqTransactionalApplicationListener> captor = ArgumentCaptor.forClass(JooqTransactionalApplicationListener.class);
+        verify(jerseyEnvironment).register(captor.capture());
         final ArgumentCaptor<ConfigurationFactoryProvider> configProviderCaptor = ArgumentCaptor.forClass(ConfigurationFactoryProvider.class);
-        verify(jerseyEnvironment, times(2)).register(configProviderCaptor.capture());
+        verify(jerseyEnvironment).register(configProviderCaptor.capture());
     }
 
     @Test

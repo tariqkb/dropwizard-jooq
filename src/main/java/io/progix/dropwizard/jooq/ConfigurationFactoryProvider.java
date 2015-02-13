@@ -14,25 +14,22 @@ import org.jooq.Configuration;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.sql.DataSource;
 
 @Singleton
 public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
     private final Configuration configuration;
-    private final DataSource dataSource;
 
     @Inject
     protected ConfigurationFactoryProvider(final MultivaluedParameterExtractorProvider extractorProvider, final ServiceLocator injector,
-            final ConfigurationFactoryInfo configInfo) {
+                                           final ConfigurationFactoryInfo configInfo) {
         super(extractorProvider, injector, Parameter.Source.UNKNOWN);
         this.configuration = configInfo.configuration;
-        this.dataSource = configInfo.dataSource;
     }
 
     @Override
     protected Factory<?> createValueFactory(Parameter parameter) {
-        return new ConfigurationFactory(configuration, dataSource, parameter.getAnnotation(JooqConfiguration.class));
+        return new ConfigurationFactory(configuration, parameter.getAnnotation(JooqConfiguration.class));
     }
 
     @Singleton
@@ -45,17 +42,15 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
     public static class Binder extends AbstractBinder {
 
-        private final DataSource dataSource;
         private final Configuration configuration;
 
-        public Binder(Configuration configuration, DataSource dataSource) {
+        public Binder(Configuration configuration) {
             this.configuration = configuration;
-            this.dataSource = dataSource;
         }
 
         @Override
         protected void configure() {
-            bind(new ConfigurationFactoryInfo(configuration, dataSource)).to(ConfigurationFactoryInfo.class);
+            bind(new ConfigurationFactoryInfo(configuration)).to(ConfigurationFactoryInfo.class);
             bind(ConfigurationFactoryProvider.class).to(ValueFactoryProvider.class).in(Singleton.class);
             bind(ConfigurationInjectionResolver.class).to(new TypeLiteral<InjectionResolver<JooqConfiguration>>() {
             }).in(Singleton.class);
@@ -64,12 +59,10 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
     public static class ConfigurationFactoryInfo {
 
-        public ConfigurationFactoryInfo(Configuration configuration, DataSource dataSource) {
+        public ConfigurationFactoryInfo(Configuration configuration) {
             this.configuration = configuration;
-            this.dataSource = dataSource;
         }
 
         public Configuration configuration;
-        public DataSource dataSource;
     }
 }
