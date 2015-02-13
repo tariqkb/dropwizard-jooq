@@ -9,10 +9,8 @@ import org.glassfish.jersey.server.monitoring.RequestEventListener;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DefaultConnectionProvider;
 
-import javax.sql.DataSource;
 import javax.ws.rs.ext.Provider;
 import java.lang.reflect.Method;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,56 +19,42 @@ import java.util.Map;
 public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     private final Map<Method, UnitOfJooq> methodMap = new HashMap<>();
-    private final DataSource dataSource;
-
-    public UnitOfJooqApplicationListener(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
 
     public static class UnitOfJooqEventListener implements RequestEventListener {
 
         private final Map<Method, UnitOfJooq> methodMap;
 
-        private final DefaultConnectionProvider connectionProvider;
-
-        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap, DefaultConnectionProvider connectionProvider) {
+        public UnitOfJooqEventListener(Map<Method, UnitOfJooq> methodMap) {
             this.methodMap = methodMap;
-            this.connectionProvider = connectionProvider;
         }
 
         @Override
         public void onEvent(RequestEvent event) {
-            if (event.getType() == RequestEvent.Type.REQUEST_MATCHED) {
-                UnitOfJooq unitOfJooq = this.methodMap.get(event.getUriInfo().getMatchedResourceMethod().getInvocable().getDefinitionMethod());
-
-                if (unitOfJooq != null) {
-                    event.getContainerRequest().setProperty("connProvider", connectionProvider);
-                    ConnectionProviderContext.bind(connectionProvider);
-                }
-            } else if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
-                if (ConnectionProviderContext.hasBind()) {
+            if (event.getType() == RequestEvent.Type.RESOURCE_METHOD_FINISHED) {
+                DefaultConnectionProvider connectionProvider = (DefaultConnectionProvider) event.getContainerRequest()
+                        .getProperty(ConfigurationFactory.CONNECTION_PROVIDER_PROPERTY);
+                if (connectionProvider != null) {
                     //commit the connection and close it
-                    ConnectionProviderContext.get().commit();
+                    connectionProvider.commit();
 
                     try {
-                        ConnectionProviderContext.get().acquire().close();
+                        connectionProvider.acquire().close();
                     } catch (SQLException e) {
                         throw new DataAccessException("An error occurred while attempting to close a connection.", e);
-                    } finally {
-                        ConnectionProviderContext.unbind();
                     }
                 }
             } else if (event.getType() == RequestEvent.Type.ON_EXCEPTION) {
-                if (ConnectionProviderContext.hasBind()) {
+                DefaultConnectionProvider connectionProvider = (DefaultConnectionProvider) event.getContainerRequest()
+                        .getProperty(ConfigurationFactory.CONNECTION_PROVIDER_PROPERTY);
+
+                if (connectionProvider != null) {
                     //rollback the connection and close it
-                    ConnectionProviderContext.get().rollback();
+                    connectionProvider.rollback();
 
                     try {
-                        ConnectionProviderContext.get().acquire().close();
+                        connectionProvider.acquire().close();
                     } catch (SQLException e) {
                         throw new DataAccessException("An error occurred while attempting to close a connection.", e);
-                    } finally {
-                        ConnectionProviderContext.unbind();
                     }
                 }
             }
@@ -80,9 +64,6 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
             return methodMap;
         }
 
-        public DefaultConnectionProvider getConnectionProvider() {
-            return connectionProvider;
-        }
     }
 
     @Override
@@ -104,12 +85,7 @@ public class UnitOfJooqApplicationListener implements ApplicationEventListener {
 
     @Override
     public RequestEventListener onRequest(RequestEvent event) {
-        try {
-            Connection connection = dataSource.getConnection();
-            return new UnitOfJooqEventListener(methodMap, new DefaultConnectionProvider(connection));
-        } catch (SQLException e) {
-            throw new DataAccessException("An error occurred while opening a connection", e);
-        }
+        return new UnitOfJooqEventListener(methodMap);
     }
 
     private void registerUnitOfWorkAnnotations(ResourceMethod method) {

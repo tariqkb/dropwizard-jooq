@@ -7,11 +7,7 @@ import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
-import io.progix.dropwizard.jooq.ConfigurationFactoryProvider;
-import io.progix.dropwizard.jooq.HSQLDBInit;
-import io.progix.dropwizard.jooq.JooqConfiguration;
-import io.progix.dropwizard.jooq.UnitOfJooq;
-import io.progix.dropwizard.jooq.UnitOfJooqApplicationListener;
+import io.progix.dropwizard.jooq.*;
 import io.progix.dropwizard.jooq.schema.tables.pojos.Author;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -22,12 +18,11 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.sql.DataSource;
 import javax.validation.Validation;
 import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
@@ -133,9 +128,10 @@ public class ExampleResourceTest extends JerseyTest {
 
         final DropwizardResourceConfig config = DropwizardResourceConfig.forTesting(new MetricRegistry());
 
-        config.register(new UnitOfJooqApplicationListener(dbConfig.build(metricRegistry, "jooq")));
+        DataSource dataSource = dbConfig.build(metricRegistry, "jooq");
+        config.register(new UnitOfJooqApplicationListener());
 
-        config.register(new ConfigurationFactoryProvider.Binder(new DefaultConfiguration().set(SQLDialect.HSQLDB)));
+        config.register(new ConfigurationFactoryProvider.Binder(new DefaultConfiguration().set(SQLDialect.HSQLDB), dataSource));
         config.register(ExampleResource.class);
         config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
         return config;
