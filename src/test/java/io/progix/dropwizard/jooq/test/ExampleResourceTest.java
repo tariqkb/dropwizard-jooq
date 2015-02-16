@@ -7,11 +7,7 @@ import io.dropwizard.jersey.DropwizardResourceConfig;
 import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.setup.Environment;
-import io.progix.dropwizard.jooq.ConfigurationFactoryProvider;
-import io.progix.dropwizard.jooq.HSQLDBInit;
-import io.progix.dropwizard.jooq.JooqConfiguration;
-import io.progix.dropwizard.jooq.JooqTransactionalApplicationListener;
-import io.progix.dropwizard.jooq.TestPathParamTenantProvider;
+import io.progix.dropwizard.jooq.*;
 import io.progix.dropwizard.jooq.schema.tables.pojos.Author;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.test.JerseyTest;
@@ -25,13 +21,7 @@ import org.junit.Test;
 
 import javax.sql.DataSource;
 import javax.validation.Validation;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.*;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.MediaType;
@@ -72,7 +62,8 @@ public class ExampleResourceTest extends JerseyTest {
 
         @PUT
         public Author put() {
-            Author a = DSL.using(config).insertInto(AUTHOR).set(AUTHOR.ID, index).set(AUTHOR.NAME, "Alli").returning().fetchOne().into(Author.class);
+            Author a = DSL.using(config).insertInto(AUTHOR).set(AUTHOR.ID, index).set(AUTHOR.NAME, "Alli").returning()
+                    .fetchOne().into(Author.class);
 
             return a;
         }
@@ -80,7 +71,11 @@ public class ExampleResourceTest extends JerseyTest {
 
     @Test
     public void findsExistingData() throws Exception {
-        final Author configAuthor = target("/bugrara/authors/1").request(MediaType.APPLICATION_JSON).get(Author.class);
+        Author configAuthor = target("/BUGRARA/authors/1").request(MediaType.APPLICATION_JSON).get(Author.class);
+
+        assertThat(configAuthor.getName()).isEqualTo("Narmeen");
+
+        configAuthor = target("/PUBLIC/authors/1").request(MediaType.APPLICATION_JSON).get(Author.class);
 
         assertThat(configAuthor.getName()).isEqualTo("Tariq");
     }
@@ -88,7 +83,7 @@ public class ExampleResourceTest extends JerseyTest {
     @Test
     public void doesNotFindMissingData() throws Exception {
         try {
-            target("/bugrara/authors/2").request(MediaType.APPLICATION_JSON).get(Author.class);
+            target("/BUGRARA/authors/2").request(MediaType.APPLICATION_JSON).get(Author.class);
             failBecauseExceptionWasNotThrown(WebApplicationException.class);
         } catch (WebApplicationException e) {
             assertThat(e.getResponse().getStatus()).isEqualTo(404);
@@ -99,7 +94,8 @@ public class ExampleResourceTest extends JerseyTest {
     public void createsNewData() throws Exception {
         final Author author = new Author(null, "Alli");
 
-        Author alli = target("/bugrara/authors/2").request().put(Entity.entity(author, MediaType.APPLICATION_JSON), Author.class);
+        Author alli = target("/BUGRARA/authors/2").request()
+                .put(Entity.entity(author, MediaType.APPLICATION_JSON), Author.class);
 
         assertThat(alli.getName()).isEqualTo("Alli");
 
@@ -107,7 +103,8 @@ public class ExampleResourceTest extends JerseyTest {
 
     @Override
     protected void configureClient(ClientConfig config) {
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
+                Validation.buildDefaultValidatorFactory().getValidator()));
     }
 
     @Override
@@ -119,10 +116,12 @@ public class ExampleResourceTest extends JerseyTest {
         when(environment.lifecycle()).thenReturn(lifecycleEnvironment);
         when(environment.metrics()).thenReturn(metricRegistry);
 
+        String url = "jdbc:hsqldb:mem:dwtest" + System.nanoTime();
+
         Map<String, String> props = new HashMap<String, String>();
         props.put("username", "sa");
         props.put("password", "");
-        props.put("url", "jdbc:hsqldb:mem:dwtest" + System.nanoTime());
+        props.put("url", url);
 
         try {
             HSQLDBInit.initPublic(props);
@@ -142,9 +141,12 @@ public class ExampleResourceTest extends JerseyTest {
 
         Configuration configuration = new DefaultConfiguration().set(SQLDialect.HSQLDB);
         configuration.set(new DataSourceConnectionProvider(dataSource));
-        config.register(new ConfigurationFactoryProvider.Binder(configuration));
+
+        config.register(new ConfigurationFactoryProvider.Binder(configuration, dataSource,
+                new TestMultiTenantConnectionProvider(dbConfig, metricRegistry, url)));
         config.register(ExampleResource.class);
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(), Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
+                Validation.buildDefaultValidatorFactory().getValidator()));
         return config;
     }
 

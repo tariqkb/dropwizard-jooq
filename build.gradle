@@ -29,7 +29,6 @@ repositories {
 
 dependencies {
     compile 'io.dropwizard:dropwizard-db:0.8.0-rc2'
-    compile 'io.dropwizard:dropwizard-hibernate:0.8.0-rc2'
     compile 'org.jooq:jooq:3.5.1'
     compile 'org.jooq:jooq-codegen:3.5.1'
 
@@ -37,8 +36,7 @@ dependencies {
     testCompile 'org.assertj:assertj-core:1.7.1';
     testCompile 'org.mockito:mockito-core:1.10.17'
 
-    compile 'org.hsqldb:hsqldb:2.3.2'
-    compile 'mysql:mysql-connector-java:5.1.34'
+    runtime 'org.hsqldb:hsqldb:2.3.2'
 }
 
 test {

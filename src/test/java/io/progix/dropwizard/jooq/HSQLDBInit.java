@@ -30,26 +30,31 @@ public class HSQLDBInit {
 
         DSLContext jooq = DSL.using(conn);
 
-        jooq.createTable(AUTHOR).column(AUTHOR.ID, SQLDataType.INTEGER).column(AUTHOR.NAME, SQLDataType.VARCHAR).execute();
+        jooq.createTable(AUTHOR).column(AUTHOR.ID, SQLDataType.INTEGER).column(AUTHOR.NAME, SQLDataType.VARCHAR)
+                .execute();
 
         jooq.execute("ALTER TABLE PUBLIC.author ADD PRIMARY KEY (id)");
 
         jooq.insertInto(AUTHOR).set(AUTHOR.ID, 1).set(AUTHOR.NAME, "Tariq").execute();
 
-        jooq.execute("CREATE SCHEMA bugrara;");
+        jooq.execute("CREATE SCHEMA BUGRARA;");
 
-        //Change to use bugrara schema
-        jooq = DSL.using(conn, new Settings().withRenderMapping(new RenderMapping().withSchemata(new MappedSchema().withInput("PUBLIC").withOutput("bugrara"))));
+        conn.commit();
 
-        jooq.createTable(AUTHOR).column(AUTHOR.ID, SQLDataType.INTEGER).column(AUTHOR.NAME, SQLDataType.VARCHAR).execute();
+        jooq = DSL.using(conn, new Settings().withRenderMapping(
+                new RenderMapping().withSchemata(new MappedSchema().withInput("PUBLIC").withOutput("BUGRARA"))));
 
-        jooq.execute("ALTER TABLE bugrara.author ADD PRIMARY KEY (id)");
+        jooq.createTable(AUTHOR).column(AUTHOR.ID, SQLDataType.INTEGER).column(AUTHOR.NAME, SQLDataType.VARCHAR)
+                .execute();
+
+        jooq.execute("ALTER TABLE BUGRARA.author ADD PRIMARY KEY (id)");
 
         jooq.insertInto(AUTHOR).set(AUTHOR.ID, 1).set(AUTHOR.NAME, "Narmeen").execute();
 
         conn.commit();
 
         conn.close();
+
     }
 
 }

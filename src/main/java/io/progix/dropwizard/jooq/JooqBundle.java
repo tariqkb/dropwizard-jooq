@@ -6,14 +6,18 @@ import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.progix.dropwizard.jooq.tenancy.MultiTenantConnectionProvider;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
 import org.jooq.impl.DefaultConfiguration;
+import org.jooq.impl.DefaultConnectionProvider;
 
-public abstract class JooqBundle<T extends io.dropwizard.Configuration> implements ConfiguredBundle<T>, DatabaseConfiguration<T> {
+public abstract class JooqBundle<T extends io.dropwizard.Configuration> implements ConfiguredBundle<T>,
+        DatabaseConfiguration<T> {
 
     private Configuration configuration;
+    private MultiTenantConnectionProvider multiTenantConnectionProvider;
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
@@ -30,15 +34,27 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         configure(this.configuration);
 
         environment.jersey().register(JooqTransactionalApplicationListener.class);
-        environment.jersey().register(new ConfigurationFactoryProvider.Binder(this.configuration));
+        environment.jersey().register(
+                new ConfigurationFactoryProvider.Binder(this.configuration, dataSource, multiTenantConnectionProvider));
 
         environment.lifecycle().manage(dataSource);
 
-        environment.healthChecks().register("jooq", new JooqHealthCheck(DSL.using(this.configuration), dbConfig.getValidationQuery()));
+        if (multiTenantConnectionProvider != null) {
+            environment.lifecycle().manage(multiTenantConnectionProvider);
+        }
+
+        environment.healthChecks().register("jooq", new JooqHealthCheck(
+                DSL.using(this.configuration.derive(new DefaultConnectionProvider(dataSource.getConnection()))),
+                dbConfig.getValidationQuery()));
     }
 
     public Configuration getConfiguration() {
         return configuration.derive();
+    }
+
+    public JooqBundle<T> setMultiTenantConnectionProvider(MultiTenantConnectionProvider multiTenantConnectionProvider) {
+        this.multiTenantConnectionProvider = multiTenantConnectionProvider;
+        return this;
     }
 
     protected abstract void configure(Configuration configuration);
