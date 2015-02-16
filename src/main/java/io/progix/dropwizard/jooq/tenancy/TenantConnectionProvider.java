@@ -4,7 +4,7 @@ import io.dropwizard.lifecycle.Managed;
 
 import java.sql.Connection;
 
-public interface MultiTenantConnectionProvider extends Managed {
+public interface TenantConnectionProvider extends Managed {
 
     public Connection acquire(String tenantIdentifier);
 }

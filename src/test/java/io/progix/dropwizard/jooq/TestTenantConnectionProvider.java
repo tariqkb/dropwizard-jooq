@@ -3,7 +3,7 @@ package io.progix.dropwizard.jooq;
 import com.codahale.metrics.MetricRegistry;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.ManagedDataSource;
-import io.progix.dropwizard.jooq.tenancy.MultiTenantConnectionProvider;
+import io.progix.dropwizard.jooq.tenancy.TenantConnectionProvider;
 import org.jooq.exception.DataAccessException;
 
 import java.sql.Connection;
@@ -11,15 +11,15 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestMultiTenantConnectionProvider implements MultiTenantConnectionProvider {
+public class TestTenantConnectionProvider implements TenantConnectionProvider {
 
     private final Map<String, ManagedDataSource> dataSources;
     private final DataSourceFactory dataSourceFactory;
     private final MetricRegistry metricRegistry;
     private final String url;
 
-    public TestMultiTenantConnectionProvider(DataSourceFactory dataSourceFactory, MetricRegistry metricRegistry,
-            String url) {
+    public TestTenantConnectionProvider(DataSourceFactory dataSourceFactory, MetricRegistry metricRegistry, String
+            url) {
         this.dataSources = new HashMap<>();
         this.dataSourceFactory = dataSourceFactory;
         this.metricRegistry = metricRegistry;

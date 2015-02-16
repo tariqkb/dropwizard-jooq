@@ -1,6 +1,6 @@
 package io.progix.dropwizard.jooq;
 
-import io.progix.dropwizard.jooq.tenancy.MultiTenantConnectionProvider;
+import io.progix.dropwizard.jooq.tenancy.TenantConnectionProvider;
 import io.progix.dropwizard.jooq.tenancy.NoTenantProvider;
 import io.progix.dropwizard.jooq.tenancy.TenantProcessingException;
 import io.progix.dropwizard.jooq.tenancy.TenantProvider;
@@ -23,10 +23,10 @@ public class ConfigurationFactory extends AbstractContainerRequestValueFactory<C
     private final Configuration baseConfiguration;
     private final JooqConfiguration annotation;
     private final DataSource dataSource;
-    private final MultiTenantConnectionProvider multiTenantConnectionProvider;
+    private final TenantConnectionProvider multiTenantConnectionProvider;
 
     public ConfigurationFactory(Configuration baseConfiguration, DataSource dataSource,
-            MultiTenantConnectionProvider multiTenantConnectionProvider, JooqConfiguration annotation) {
+            TenantConnectionProvider multiTenantConnectionProvider, JooqConfiguration annotation) {
         this.baseConfiguration = baseConfiguration;
         this.annotation = annotation;
         this.dataSource = dataSource;

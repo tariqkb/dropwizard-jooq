@@ -1,6 +1,6 @@
 package io.progix.dropwizard.jooq;
 
-import io.progix.dropwizard.jooq.tenancy.MultiTenantConnectionProvider;
+import io.progix.dropwizard.jooq.tenancy.TenantConnectionProvider;
 import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.InjectionResolver;
 import org.glassfish.hk2.api.ServiceLocator;
@@ -22,7 +22,7 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
     private final Configuration configuration;
     private final DataSource dataSource;
-    private final MultiTenantConnectionProvider multiTenantConnectionProvider;
+    private final TenantConnectionProvider multiTenantConnectionProvider;
 
     @Inject
     protected ConfigurationFactoryProvider(final MultivaluedParameterExtractorProvider extractorProvider,
@@ -57,10 +57,10 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
         private final Configuration configuration;
         private final DataSource dataSource;
-        private final MultiTenantConnectionProvider multiTenantConnectionProvider;
+        private final TenantConnectionProvider multiTenantConnectionProvider;
 
         public Binder(Configuration configuration, DataSource dataSource,
-                MultiTenantConnectionProvider multiTenantConnectionProvider) {
+                TenantConnectionProvider multiTenantConnectionProvider) {
             this.configuration = configuration;
             this.dataSource = dataSource;
             this.multiTenantConnectionProvider = multiTenantConnectionProvider;
@@ -86,10 +86,10 @@ public class ConfigurationFactoryProvider extends AbstractValueFactoryProvider {
 
         public Configuration configuration;
         public DataSource dataSource;
-        public MultiTenantConnectionProvider multiTenantConnectionProvider;
+        public TenantConnectionProvider multiTenantConnectionProvider;
 
         public ConfigurationFactoryInfo(Configuration configuration, DataSource dataSource,
-                MultiTenantConnectionProvider multiTenantConnectionProvider) {
+                TenantConnectionProvider multiTenantConnectionProvider) {
             this.configuration = configuration;
             this.dataSource = dataSource;
             this.multiTenantConnectionProvider = multiTenantConnectionProvider;

@@ -143,7 +143,7 @@ public class ExampleResourceTest extends JerseyTest {
         configuration.set(new DataSourceConnectionProvider(dataSource));
 
         config.register(new ConfigurationFactoryProvider.Binder(configuration, dataSource,
-                new TestMultiTenantConnectionProvider(dbConfig, metricRegistry, url)));
+                new TestTenantConnectionProvider(dbConfig, metricRegistry, url)));
         config.register(ExampleResource.class);
         config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
                 Validation.buildDefaultValidatorFactory().getValidator()));

@@ -6,7 +6,7 @@ import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.db.ManagedDataSource;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-import io.progix.dropwizard.jooq.tenancy.MultiTenantConnectionProvider;
+import io.progix.dropwizard.jooq.tenancy.TenantConnectionProvider;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DataSourceConnectionProvider;
@@ -17,7 +17,7 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         DatabaseConfiguration<T> {
 
     private Configuration configuration;
-    private MultiTenantConnectionProvider multiTenantConnectionProvider;
+    private TenantConnectionProvider multiTenantConnectionProvider;
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
@@ -52,7 +52,7 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
         return configuration.derive();
     }
 
-    public JooqBundle<T> setMultiTenantConnectionProvider(MultiTenantConnectionProvider multiTenantConnectionProvider) {
+    public JooqBundle<T> setMultiTenantConnectionProvider(TenantConnectionProvider multiTenantConnectionProvider) {
         this.multiTenantConnectionProvider = multiTenantConnectionProvider;
         return this;
     }
