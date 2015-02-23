@@ -3,10 +3,8 @@ package io.progix.dropwizard.jooq.test;
 import com.codahale.metrics.health.HealthCheck;
 import io.progix.dropwizard.jooq.JooqHealthCheck;
 import org.jooq.Configuration;
-import org.jooq.ConnectionProvider;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
-import org.jooq.TransactionalCallable;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.jooq.impl.DefaultConfiguration;
@@ -16,19 +14,14 @@ import org.jooq.tools.jdbc.MockDataProvider;
 import org.jooq.tools.jdbc.MockExecuteContext;
 import org.jooq.tools.jdbc.MockResult;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
-import sun.security.krb5.Config;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class JooqHealthCheckTest {
+
     private final MockDataProvider provider = new MockDataProvider() {
         @Override
         public MockResult[] execute(MockExecuteContext ctx) throws SQLException {
@@ -40,21 +33,24 @@ public class JooqHealthCheckTest {
             // Exceptions are propagated through the JDBC and jOOQ APIs
             if (sql.equals("SELECT 1")) {
                 mock[0] = new MockResult(1, DSL.using(SQLDialect.HSQLDB).newResult());
+            } else {
+                throw new DataAccessException("Incorrect validation query");
             }
 
             return mock;
         }
     };
     private final MockConnection connection = new MockConnection(provider);
+    private final Configuration configuration = new DefaultConfiguration();
 
-    private final ConnectionProvider connectionProvider = mock(ConnectionProvider.class);
-    private final DSLContext dslContext = mock(DSLContext.class);
-    private JooqHealthCheck healthCheck = new JooqHealthCheck(dslContext, "SELECT 1");
+    private DSLContext dslContext;
+    private JooqHealthCheck healthCheck;
 
     @Before
     public void setUp() {
-        when(connectionProvider.acquire()).thenReturn(connection);
-
+        configuration.set(new DefaultConnectionProvider(connection));
+        dslContext = DSL.using(configuration);
+        healthCheck = new JooqHealthCheck(dslContext, "SELECT 1");
     }
 
     @Test
@@ -69,24 +65,13 @@ public class JooqHealthCheckTest {
 
     @Test
     public void isHealthyIfNoExceptionIsThrown() throws Exception {
-//        assertThat(healthCheck.execute()).isEqualTo(HealthCheck.Result.healthy());
-//
-//        final InOrder inOrder = inOrder(connectionProvider);
-//        inOrder.verify(connectionProvider).acquire();
-//        inOrder.verify(connectionProvider).commit();
-//        assertThat(connection.isClosed()).isTrue();
+        assertThat(healthCheck.execute()).isEqualTo(HealthCheck.Result.healthy());
     }
 
     @Test
-    @Ignore
     public void isUnhealthyIfAnExceptionIsThrown() throws Exception {
-//        healthCheck = new JooqHealthCheck(dslContext, "SELECT 2");
-//
-//        assertThat(healthCheck.execute().isHealthy()).isFalse();
-//
-//        final InOrder inOrder = inOrder(connectionProvider);
-//        inOrder.verify(connectionProvider).acquire();
-//        inOrder.verify(connectionProvider).rollback();
-//        assertThat(connection.isClosed()).isTrue();
+        healthCheck = new JooqHealthCheck(dslContext, "SELECT 2");
+
+        assertThat(healthCheck.execute().isHealthy()).isFalse();
     }
 }
