@@ -35,6 +35,14 @@ the database connection to rollback. Similarly, the connection only commits once
 
 ##Getting started
 
+```xml
+<dependency>
+    <groupId>io.progix.dropwizard</groupId>
+    <artifactId>dropwizard-jooq</artifactId>
+    <version>0.1.0</version>
+</dependency>
+```
+
 This module uses the same configuration settings as dropwizard-hibernate and dropwizard-jdbi.
 
 A `DataSourceFactory` is necessary to establish connections to your database. An example configuration
@@ -131,8 +139,8 @@ To remove this behavior, the `@JooqConfiguration` annotation provides a switch f
 @JooqConfiguration(transactional = false) Configuration config
 ```
 Requests that are not transactional depend on the given jOOQ `ConnectionProvider` of the default jOOQ `Configuration`.
-In other words, non-transactional requests will use a copy of the default `Configuration`. the `JooqBundle` will
-automatically create a `DataSourceConnectionProvider` for the default `Configuration`
+In other words, non-transactional requests will use a copy of the default `Configuration`. Note that the `JooqBundle` will
+automatically create a `DataSourceConnectionProvider` for the default `Configuration`.
 
 ###Tenancy
 
