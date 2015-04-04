@@ -39,7 +39,7 @@ the database connection to rollback. Similarly, the connection only commits once
 <dependency>
     <groupId>io.progix.dropwizard</groupId>
     <artifactId>dropwizard-jooq</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1</version>
 </dependency>
 ```
 
