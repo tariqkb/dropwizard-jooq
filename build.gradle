@@ -20,7 +20,7 @@ apply plugin: 'signing'
 
 group = "io.progix.dropwizard"
 archivesBaseName = "dropwizard-jooq"
-version = "0.1.0"
+version = "0.1.1"
 
 repositories {
     mavenCentral()
@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    compile 'io.dropwizard:dropwizard-db:0.8.0-rc2'
+    compile 'io.dropwizard:dropwizard-db:0.8.0'
     compile 'org.jooq:jooq:3.5.1'
     compile 'org.jooq:jooq-codegen:3.5.1'
 
