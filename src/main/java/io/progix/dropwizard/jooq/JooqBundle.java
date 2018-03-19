@@ -4,6 +4,7 @@ import io.dropwizard.ConfiguredBundle;
 import io.dropwizard.db.DataSourceFactory;
 import io.dropwizard.db.DatabaseConfiguration;
 import io.dropwizard.db.ManagedDataSource;
+import io.dropwizard.db.PooledDataSourceFactory;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.progix.dropwizard.jooq.tenancy.TenantConnectionProvider;
@@ -26,7 +27,7 @@ public abstract class JooqBundle<T extends io.dropwizard.Configuration> implemen
 
     @Override
     public void run(T dwConfiguration, Environment environment) throws Exception {
-        final DataSourceFactory dbConfig = getDataSourceFactory(dwConfiguration);
+        final PooledDataSourceFactory dbConfig = getDataSourceFactory(dwConfiguration);
         ManagedDataSource dataSource = dbConfig.build(environment.metrics(), "jooq");
 
         this.configuration = new DefaultConfiguration();

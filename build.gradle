@@ -16,11 +16,10 @@
 
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'signing'
 
 group = "io.progix.dropwizard"
 archivesBaseName = "dropwizard-jooq"
-version = "0.1.2"
+version = "0.2.0"
 
 repositories {
     mavenCentral()
@@ -51,8 +50,8 @@ buildscript {
         versions = [:]
     }
 
-    versions.jooq = '3.6.1'
-    versions.dropwizard = '0.8.1'
+    versions.jooq = '3.8.5'
+    versions.dropwizard = '1.0.2'
 
     repositories {
         mavenLocal()
@@ -120,10 +119,6 @@ task sourcesJar(type: Jar) {
 
 artifacts {
     archives javadocJar, sourcesJar
-}
-
-signing {
-    sign configurations.archives
 }
 
 uploadArchives {

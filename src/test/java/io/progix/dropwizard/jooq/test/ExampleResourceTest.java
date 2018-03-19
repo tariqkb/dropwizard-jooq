@@ -103,8 +103,7 @@ public class ExampleResourceTest extends JerseyTest {
 
     @Override
     protected void configureClient(ClientConfig config) {
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
     }
 
     @Override
@@ -145,8 +144,7 @@ public class ExampleResourceTest extends JerseyTest {
         config.register(new ConfigurationFactoryProvider.Binder(configuration, dataSource,
                 new TestTenantConnectionProvider(dbConfig, metricRegistry, url)));
         config.register(ExampleResource.class);
-        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper(),
-                Validation.buildDefaultValidatorFactory().getValidator()));
+        config.register(new JacksonMessageBodyProvider(Jackson.newObjectMapper()));
         return config;
     }
 
