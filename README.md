@@ -1,8 +1,8 @@
-#Dropwizard jOOQ
+# Dropwizard jOOQ
 
 This module provides streamlined access to jOOQ in your Dropwizard application.
 
-##Example
+## Example
 
 ```java
 private final Configuration config;
@@ -33,7 +33,7 @@ to make SQL statements, etc.
 By default, all methods are transactional. Any exception thrown during resource execution will cause
 the database connection to rollback. Similarly, the connection only commits once execution has completed.
 
-##Getting started
+## Getting started
 
 ```xml
 <dependency>
@@ -128,9 +128,9 @@ database:
   minIdleTime: 1 minute
 ```
 
-##Advanced
+## Advanced
 
-###Transactions
+### Transactions
 
 Resources injected with `@JooqConfiguration Configuration config` are transactional by default.
 To remove this behavior, the `@JooqConfiguration` annotation provides a switch for transactional behavior.
@@ -142,7 +142,7 @@ Requests that are not transactional depend on the given jOOQ `ConnectionProvider
 In other words, non-transactional requests will use a copy of the default `Configuration`. Note that the `JooqBundle` will
 automatically create a `DataSourceConnectionProvider` for the default `Configuration`.
 
-###Tenancy
+### Tenancy
 
 This module supports separate database and separate schema multi-tenancy out of the box. The following
 implementations are required.
@@ -162,7 +162,7 @@ docs for more information.
 You must also return the input schema name of generated jOOQ files so that the jOOQ configuration can map
 to the specified tenant database/schema.
 
-####TenantConnectionProvider
+#### TenantConnectionProvider
 Implementation of this interface is very flexible and requires you to inject whatever information is required
 to provide a JDBC connection for a given tenant identifier. You will most likely want to provide the
 `DataSourceFactory` to your implementation and create a map of tenant identifiers and connection pools
@@ -174,5 +174,5 @@ and stop and `ManagedDataSource`s in the `stop` method.
 It is my intention to provide abstract implementations to make implementation of `TenantConnectionProvider`
 straightforward once I have a better understanding of common implementations.
 
-##Notes
+## Notes
 Please open issues if you find any bugs or if you have any suggestions!
